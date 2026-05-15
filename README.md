@@ -1,6 +1,8 @@
-# Mandarin Speech Coach
+# Mandarin Speech Coach (Prototype)
 
-A Gradio web app for **Mandarin pronunciation practice**. Record or upload your voice, compare it to a target phrase, and see **pitch (F0)**, **character-level alignment**, and **tone-colored** segments.
+![Demo](assets/demo.png)
+
+A web app for **Mandarin pronunciation practice**. Record or upload your voice, compare it to a target phrase, and see **pitch (F0)**, **character-level alignment**, and **tone-colored** segments.
 
 Speech recognition uses **OpenAI Whisper**; alignment defaults to a **Wav2Vec2 CTC** model (no extra tools). **Montreal Forced Aligner (MFA)** is optional for classic forced alignment.
 
@@ -45,8 +47,19 @@ Default target phrase: **我喜欢机器学习** (`wǒ xǐhuān jīqì xuéxí`)
 
 Hugging Face models (downloaded on first run if not cached):
 
-- `openai/whisper-small`
+- `openai/whisper-small` (loaded via **transformers**)
 - `jonatasgrosman/wav2vec2-large-xlsr-53-chinese-zh-cn`
+
+### Fonts (optional)
+
+The Gradio UI and Plotly charts usually render Chinese characters without extra setup. If labels or plots show **tofu boxes** (□) on your machine, install a CJK font:
+
+```bash
+# macOS (Homebrew)
+brew install --cask font-noto-sans-cjk
+```
+
+On Linux, install a Noto CJK or Source Han Sans package via your distro. This is only needed for local font rendering.
 
 ---
 

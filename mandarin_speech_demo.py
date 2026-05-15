@@ -1,13 +1,3 @@
-# pip install gradio whisper praat-parselmouth numpy matplotlib pypinyin torch transformers librosa soundfile
-# pip install aeneas
-#
-# for MFA:
-# pip install spacy-pkuseg dragonmapper hanziconv
-# mfa model download acoustic mandarin_mfa
-# mfa model download dictionary mandarin_mfa
-# not needed: mfa model download language_model mandarin_mfa_lm
-# brew install --cask font-noto-sans-cjk
-
 import gradio as gr
 import torch
 import torchaudio
@@ -37,7 +27,82 @@ print(f"Using device: {DEVICE}")
 # 2. Target Phrase
 TARGET_TEXT = "我喜欢机器学习"
 TARGET_PINYIN_TONES = pinyin(TARGET_TEXT, style=Style.TONE3)
-TARGET_PINYIN_TEXT = ' '.join([item[0] for item in pinyin(TARGET_TEXT, style=Style.TONE)])
+
+
+def format_pinyin(text):
+    """Full-syllable pinyin with tone marks (one string per character)."""
+    hanzi = "".join(ch for ch in (text or "") if "\u4e00" <= ch <= "\u9fff")
+    if not hanzi:
+        return "—"
+    return " ".join(syl[0] for syl in pinyin(hanzi, style=Style.TONE))
+
+
+TARGET_PINYIN_TEXT = format_pinyin(TARGET_TEXT)
+
+PHRASE_CARD_CSS = """
+.phrase-row { align-items: stretch; }
+.phrase-card {
+    padding: 1.1rem 1.35rem;
+    border-radius: 10px;
+    height: 100%;
+    box-sizing: border-box;
+}
+.phrase-card-target {
+    background: linear-gradient(180deg, #f4f9ff 0%, #eef5fc 100%);
+    border: 1px solid #c5d9f0;
+}
+.phrase-card-heard {
+    background: #fafafa;
+    border: 1px solid #e0e0e0;
+}
+.phrase-card-heard.placeholder { color: #888; }
+.phrase-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5a6a7a;
+    margin: 0 0 0.65rem 0;
+}
+.phrase-hanzi {
+    font-size: 2.15rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0 0 0.4rem 0;
+    color: #1a1a1a;
+}
+.phrase-pinyin {
+    font-size: 1.2rem;
+    line-height: 1.45;
+    margin: 0;
+    color: #3d4f5f;
+}
+"""
+
+
+def phrase_card_html(label, hanzi, pinyin_text, variant="target"):
+    hanzi_display = hanzi if hanzi and hanzi != "—" else "—"
+    pinyin_display = pinyin_text if pinyin_text and pinyin_text != "—" else "—"
+    extra = " placeholder" if variant == "placeholder" else ""
+    card_class = "phrase-card-target" if variant == "target" else f"phrase-card-heard{extra}"
+    return (
+        f'<div class="phrase-card {card_class}">'
+        f'<p class="phrase-label">{label}</p>'
+        f'<p class="phrase-hanzi">{hanzi_display}</p>'
+        f'<p class="phrase-pinyin">{pinyin_display}</p>'
+        "</div>"
+    )
+
+
+TARGET_PHRASE_HTML = phrase_card_html(
+    "Say this phrase", TARGET_TEXT, TARGET_PINYIN_TEXT, variant="target"
+)
+HEARD_PLACEHOLDER_HTML = phrase_card_html(
+    "What we heard",
+    "—",
+    "Record audio, then click Analyze",
+    variant="placeholder",
+)
 
 TONE_COLORS = {
     '1': 'rgba(204, 229, 255, 0.5)',  # Pale Blue
@@ -455,7 +520,7 @@ def analyze_pronunciation(audio_filepath, alignment_method):
     
     # 2. Recognize speech (for comparison)
     recognized_hanzi = recognize_speech(trimmed_audio_path)
-    recognized_pinyin = ' '.join(pinyin(recognized_hanzi, style=Style.TONE)[0]) if recognized_hanzi else "N/A"
+    recognized_pinyin = format_pinyin(recognized_hanzi)
     
     # 3. Perform Forced Alignment using the selected method
     if "CTC" in alignment_method:
@@ -473,27 +538,25 @@ def analyze_pronunciation(audio_filepath, alignment_method):
     # 4. Create the plot
     fig = create_pronunciation_plot(segments, trimmed_audio_path)
     
-    # 5. Format output text
-    output_md = f"""
-    ### Whisper Recognized Text
-    **Hanzi:** {recognized_hanzi}
-    **Pinyin:** `{recognized_pinyin}`
-    ---
-    ### Target Text
-    **Hanzi:** {TARGET_TEXT}
-    **Pinyin:** `{TARGET_PINYIN_TEXT}`
-    """
+    heard_html = phrase_card_html(
+        "What we heard",
+        recognized_hanzi.strip() if recognized_hanzi else "—",
+        recognized_pinyin,
+        variant="heard",
+    )
 
-    # Cleanup temp file
     os.remove(trimmed_audio_path)
 
-    return output_md, fig
+    return heard_html, fig
 
 # --- Gradio UI ---
 
-with gr.Blocks() as demo:
+with gr.Blocks(css=PHRASE_CARD_CSS, title="Mandarin Speech Coach") as demo:
     gr.Markdown("# Mandarin Pronunciation Practice Tool")
-    gr.Markdown(f"Record yourself saying the target phrase: **{TARGET_TEXT}**")
+
+    with gr.Row(elem_classes=["phrase-row"]):
+        target_phrase = gr.HTML(value=TARGET_PHRASE_HTML)
+        heard_phrase = gr.HTML(value=HEARD_PLACEHOLDER_HTML)
 
     with gr.Row():
         with gr.Column(scale=1):
@@ -505,15 +568,14 @@ with gr.Blocks() as demo:
                 value="CTC (Default)"
             )
             analyze_btn = gr.Button("Analyze Pronunciation", variant="primary")
-            
+
         with gr.Column(scale=2):
-            output_markdown = gr.Markdown()
-            output_plot = gr.Plot() # Use gr.Plot for interactive, responsive Plotly charts
+            output_plot = gr.Plot()
 
     analyze_btn.click(
         fn=analyze_pronunciation,
         inputs=[mic_input, alignment_method_dd],
-        outputs=[output_markdown, output_plot]
+        outputs=[heard_phrase, output_plot],
     )
 
 demo.launch(
