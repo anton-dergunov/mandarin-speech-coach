@@ -174,13 +174,6 @@ mfa model inspect dictionary mandarin_mfa
 mfa model inspect acoustic mandarin_mfa
 ```
 
-**Troubleshooting MFA in the app**
-
-- If alignment fails, the UI shows MFA’s **stderr**.
-- Run MFA from the same shell as the app so `which mfa` resolves to your conda install.
-- The app uses `mfa align` (speaker subdirectory) first, then `mfa align_one`, with `--no_tokenization` and **space-separated characters** in the `.lab` file.
-- Audio is converted to **16 kHz, mono, 16-bit PCM** before MFA runs.
-
 **CLI test** (transcript must match what is spoken, and use dictionary words only):
 
 ```bash
