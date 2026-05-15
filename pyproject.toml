@@ -33,5 +33,14 @@ dependencies = [
   "plotly>=5.18",
 ]
 
+[project.optional-dependencies]
+# Required by the MFA CLI for Mandarin tokenization (install in your `aligner` conda env).
+# If you see numpy/sklearn conflicts after pip install, use: pip install "spacy-pkuseg==0.0.33"
+mfa = [
+  "spacy-pkuseg>=0.0.33",
+  "dragonmapper>=0.2.6",
+  "hanziconv>=0.3.2",
+]
+
 [tool.setuptools]
 py-modules = ["mandarin_speech_demo"]

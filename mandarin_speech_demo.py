@@ -269,39 +269,117 @@ def align_audio_to_text(audio_path, transcription):
     }]
 
 
+def _format_mfa_transcript(text):
+    """Whitespace-separated tokens; Mandarin MFA models expect segmented orthography."""
+    return " ".join(ch for ch in text if not ch.isspace())
+
+
+def _prepare_wav_for_mfa(audio_path):
+    """16 kHz mono 16-bit PCM WAV (Kaldi/MFA requirement)."""
+    y, _ = librosa.load(audio_path, sr=16000, mono=True)
+    out_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+    sf.write(out_path, y, 16000, subtype="PCM_16")
+    return out_path
+
+
+def _run_mfa(cmd):
+    """Run MFA CLI; return CompletedProcess (check returncode yourself)."""
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def _mfa_error_message(cmd, result):
+    detail = (result.stderr or result.stdout or "No output from MFA.").strip()
+    return (
+        "Montreal Forced Aligner failed.\n\n"
+        f"Command: {' '.join(cmd)}\n\n"
+        f"{detail[-6000:]}"
+    )
+
+
+def _parse_mfa_textgrid(tg_path):
+    """Read MFA word intervals from a Praat TextGrid (praatio 6.x API)."""
+    tg = textgrid.openTextgrid(tg_path, includeEmptyIntervals=True)
+    tier_name = "words" if "words" in tg.tierNames else None
+    if tier_name is None:
+        for name in tg.tierNames:
+            if "word" in name.lower():
+                tier_name = name
+                break
+    if tier_name is None:
+        return []
+    words_tier = tg.getTier(tier_name)
+    return [
+        {"word": entry.label, "start": entry.start, "end": entry.end}
+        for entry in words_tier.entries
+        if entry.label.strip()
+    ]
+
+
 def mfa_align(audio_path, text):
     """Performs forced alignment using the Montreal Forced Aligner (MFA)."""
     if not shutil.which("mfa"):
         raise gr.Error(
             "Montreal Forced Aligner (`mfa`) is not installed or not on PATH. "
-            "See README.md for setup instructions."
+            "Activate your MFA conda env in the same shell as the app. See README.md."
         )
-        
-    corpus_dir = tempfile.mkdtemp()
-    mfa_output_dir = tempfile.mkdtemp()
+
+    mfa_text = _format_mfa_transcript(text)
+    mfa_wav = _prepare_wav_for_mfa(audio_path)
+    lab_path = tempfile.NamedTemporaryFile(delete=False, suffix=".lab", mode="w", encoding="utf-8")
+    tg_path = tempfile.NamedTemporaryFile(delete=False, suffix=".TextGrid").name
+    corpus_dir = None
+    mfa_output_dir = None
+
     try:
-        # Prepare corpus
-        shutil.copy(audio_path, os.path.join(corpus_dir, "utt1.wav"))
-        with open(os.path.join(corpus_dir, "utt1.lab"), "w", encoding="utf-8") as f:
-            f.write(text)
+        lab_path.write(mfa_text)
+        lab_path.close()
 
-        # Run MFA
-        subprocess.run([
-            "mfa", "align", "--clean", "--single_speaker",
-            corpus_dir, MFA_DICTIONARY, MFA_ACOUSTIC_MODEL, mfa_output_dir
-        ], check=True, capture_output=True, text=True)
+        # --no_tokenization: we already pass space-separated characters (see _format_mfa_transcript)
+        # Batch align first (more reliable for mandarin_mfa than align_one; see MFA issue #908)
+        corpus_dir = tempfile.mkdtemp()
+        mfa_output_dir = tempfile.mkdtemp()
+        speaker_dir = os.path.join(corpus_dir, "speaker")
+        os.makedirs(speaker_dir)
+        shutil.copy(mfa_wav, os.path.join(speaker_dir, "utt1.wav"))
+        with open(os.path.join(speaker_dir, "utt1.lab"), "w", encoding="utf-8") as f:
+            f.write(mfa_text)
 
-        # Parse TextGrid
-        tg_path = os.path.join(mfa_output_dir, "utt1.TextGrid")
-        if not os.path.exists(tg_path):
-            return []
-        
-        tg = textgrid.openTextgrid(tg_path, includeEmptyIntervals=True)
-        return [{"word": entry.label, "start": entry.start, "end": entry.end} for entry in tg.getTier("words").entries if entry.label.strip()]
+        align_cmd = [
+            "mfa", "align", "--clean", "--single_speaker", "--no_tokenization", "-j", "1",
+            corpus_dir, MFA_DICTIONARY, MFA_ACOUSTIC_MODEL, mfa_output_dir,
+        ]
+        align_result = _run_mfa(align_cmd)
+        if align_result.returncode == 0:
+            tg_path_batch = os.path.join(mfa_output_dir, "speaker", "utt1.TextGrid")
+            if not os.path.exists(tg_path_batch):
+                tg_path_batch = os.path.join(mfa_output_dir, "utt1.TextGrid")
+            if os.path.exists(tg_path_batch):
+                segments = _parse_mfa_textgrid(tg_path_batch)
+                if segments:
+                    return segments
+
+        align_one_cmd = [
+            "mfa", "align_one", "--clean", "--no_tokenization", "-j", "1",
+            mfa_wav, lab_path.name, MFA_DICTIONARY, MFA_ACOUSTIC_MODEL, tg_path,
+        ]
+        align_one_result = _run_mfa(align_one_cmd)
+        if align_one_result.returncode == 0 and os.path.exists(tg_path):
+            segments = _parse_mfa_textgrid(tg_path)
+            if segments:
+                return segments
+
+        failed = align_result if align_result.returncode != 0 else align_one_result
+        failed_cmd = align_cmd if align_result.returncode != 0 else align_one_cmd
+        raise gr.Error(_mfa_error_message(failed_cmd, failed))
 
     finally:
-        shutil.rmtree(corpus_dir)
-        shutil.rmtree(mfa_output_dir)
+        for path in (mfa_wav, lab_path.name, tg_path):
+            if path and os.path.exists(path):
+                os.remove(path)
+        if corpus_dir:
+            shutil.rmtree(corpus_dir, ignore_errors=True)
+        if mfa_output_dir:
+            shutil.rmtree(mfa_output_dir, ignore_errors=True)
 
 # --- Plotting Function ---
 

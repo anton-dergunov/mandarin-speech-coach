@@ -139,7 +139,71 @@ mfa model inspect acoustic mandarin_mfa
 mfa model inspect dictionary mandarin_mfa
 ```
 
-Run the app with `mfa` on your `PATH` (e.g. keep `conda activate aligner` in the same shell, or install MFA in the same env as the app).
+**Chinese tokenization** (required for Mandarin MFA; install inside the `aligner` conda env):
+
+```bash
+conda activate aligner
+pip install "spacy-pkuseg>=0.0.33" dragonmapper hanziconv
+# Or from this repo: pip install -e ".[mfa]"
+```
+
+If you hit `numpy.dtype size changed` after installing pkuseg, pin an older pkuseg build:
+
+```bash
+pip install "spacy-pkuseg==0.0.33" dragonmapper hanziconv
+```
+
+Keep MFA updated (fixes many Mandarin alignment bugs):
+
+```bash
+conda update -c conda-forge montreal-forced-aligner kalpy
+```
+
+Run the app with `mfa` on your `PATH` in the **same terminal** as the Python app:
+
+```bash
+conda activate aligner          # or your MFA env name
+source .venv/bin/activate       # project venv
+python mandarin_speech_demo.py
+```
+
+Quick sanity check (uses a tiny temp recording; should print MFA version info, not fail immediately):
+
+```bash
+mfa model inspect dictionary mandarin_mfa
+mfa model inspect acoustic mandarin_mfa
+```
+
+**Troubleshooting MFA in the app**
+
+- If alignment fails, the UI shows MFA’s **stderr**.
+- Run MFA from the same shell as the app so `which mfa` resolves to your conda install.
+- The app uses `mfa align` (speaker subdirectory) first, then `mfa align_one`, with `--no_tokenization` and **space-separated characters** in the `.lab` file.
+- Audio is converted to **16 kHz, mono, 16-bit PCM** before MFA runs.
+
+**CLI test** (transcript must match what is spoken, and use dictionary words only):
+
+```bash
+printf '%s' "我 喜 欢 机 器 学 习" > /tmp/test.lab
+mfa align_one --clean --no_tokenization -j 1 \
+  /path/to/your.wav /tmp/test.lab mandarin_mfa mandarin_mfa /tmp/out.TextGrid
+```
+
+`RuntimeError: kaldi::KaldiFatalError` during alignment usually means:
+
+1. **Transcript mismatch** — `.lab` text does not match the audio (or is empty / English / wrong encoding).
+2. **Out-of-vocabulary characters** — a character in the `.lab` file is not in `mandarin_mfa` (check with `mfa validate` on a small corpus).
+3. **`align_one` + mandarin_mfa** — known issues; try batch align instead:
+
+```bash
+mkdir -p /tmp/mfa_corpus/speaker
+cp /path/to/your.wav /tmp/mfa_corpus/speaker/utt1.wav
+cp /tmp/test.lab /tmp/mfa_corpus/speaker/utt1.lab
+mfa align --clean --single_speaker --no_tokenization -j 1 \
+  /tmp/mfa_corpus mandarin_mfa mandarin_mfa /tmp/mfa_out
+```
+
+If MFA remains unreliable, use **CTC (Default)** in the UI — it does not need conda or Chinese tokenization.
 
 **Environment overrides** (defaults match the commands above):
 
