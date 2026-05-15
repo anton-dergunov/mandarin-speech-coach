@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mandarin-speech-trainer"
+version = "0.1.0"
+description = "Gradio app for Mandarin pronunciation practice with Whisper, CTC alignment, and pitch visualization."
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Project contributors" }]
+keywords = ["mandarin", "chinese", "pronunciation", "speech", "gradio", "whisper", "forced-alignment"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Education",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "gradio>=4.44,<6",
+  "numpy>=1.24",
+  "torch>=2.1",
+  "torchaudio>=2.1",
+  "transformers>=4.40",
+  "praat-parselmouth>=0.4.3",
+  "pypinyin>=0.50",
+  "praatio>=6.0",
+  "librosa>=0.10",
+  "soundfile>=0.12",
+  "plotly>=5.18",
+]
+
+[tool.setuptools]
+py-modules = ["mandarin_speech_demo"]
