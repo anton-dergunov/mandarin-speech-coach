@@ -3,7 +3,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mandarin-speech-trainer"
+name = "mandarin-speech-coach"
 version = "0.1.0"
 description = "Gradio app for Mandarin pronunciation practice with Whisper, CTC alignment, and pitch visualization."
 requires-python = ">=3.10"

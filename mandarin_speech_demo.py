@@ -55,9 +55,9 @@ whisper_model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-
 ctc_processor = Wav2Vec2Processor.from_pretrained("jonatasgrosman/wav2vec2-large-xlsr-53-chinese-zh-cn")
 ctc_model = Wav2Vec2ForCTC.from_pretrained("jonatasgrosman/wav2vec2-large-xlsr-53-chinese-zh-cn").to(DEVICE)
 
-# 5. MFA Configuration (if used)
-MFA_MODEL_NAME = "mandarin_mfa"
-MFA_DICT_PATH = os.path.expanduser("~/Documents/MFA/pretrained_models/dictionary/mandarin_mfa.dict")
+# 5. MFA configuration (optional; model names from `mfa model download`, overridable via env)
+MFA_ACOUSTIC_MODEL = os.environ.get("MFA_ACOUSTIC_MODEL", "mandarin_mfa")
+MFA_DICTIONARY = os.environ.get("MFA_DICTIONARY", "mandarin_mfa")
 
 
 # --- Core Functions ---
@@ -271,8 +271,11 @@ def align_audio_to_text(audio_path, transcription):
 
 def mfa_align(audio_path, text):
     """Performs forced alignment using the Montreal Forced Aligner (MFA)."""
-    if not os.path.exists(MFA_DICT_PATH) or not shutil.which("mfa"):
-        raise gr.Error("MFA is not installed or the dictionary/model path is incorrect. Please check your MFA setup.")
+    if not shutil.which("mfa"):
+        raise gr.Error(
+            "Montreal Forced Aligner (`mfa`) is not installed or not on PATH. "
+            "See README.md for setup instructions."
+        )
         
     corpus_dir = tempfile.mkdtemp()
     mfa_output_dir = tempfile.mkdtemp()
@@ -285,7 +288,7 @@ def mfa_align(audio_path, text):
         # Run MFA
         subprocess.run([
             "mfa", "align", "--clean", "--single_speaker",
-            corpus_dir, MFA_DICT_PATH, MFA_MODEL_NAME, mfa_output_dir
+            corpus_dir, MFA_DICTIONARY, MFA_ACOUSTIC_MODEL, mfa_output_dir
         ], check=True, capture_output=True, text=True)
 
         # Parse TextGrid
@@ -435,4 +438,8 @@ with gr.Blocks() as demo:
         outputs=[output_markdown, output_plot]
     )
 
-demo.launch(debug=True)
+demo.launch(
+    debug=os.environ.get("GRADIO_DEBUG", "0") == "1",
+    server_name=os.environ.get("GRADIO_SERVER_NAME", "127.0.0.1"),
+    server_port=int(os.environ.get("GRADIO_SERVER_PORT", "7860")),
+)
