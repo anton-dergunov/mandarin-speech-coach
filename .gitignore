@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Packaging / install artifacts
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+
+# uv
+.uv/
+
+# Test / lint / type caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Hugging Face and model caches (large downloads)
+.cache/
+hf_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE (optional local settings)
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and local temp audio
+*.log
+tmp/
+temp/
+*.wav.tmp
+
+# Gradio (optional local uploads / flagging dir)
+gradio_cached_examples/
+flagged/
