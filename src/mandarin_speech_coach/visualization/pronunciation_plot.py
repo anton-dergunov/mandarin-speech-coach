@@ -61,9 +61,8 @@ class PronunciationPlotBuilder:
             xaxis_title="Time (s)",
             yaxis_title="Pitch (Hz)",
             showlegend=False,
-            # FIXME Pass snd.duration from the pitch code
-            xaxis=dict(range=[0, snd.duration]),
-            yaxis=dict(rangemode='tozero'), # Ensure y-axis starts at 0
+            xaxis=dict(range=[0, pitch_track.duration]),
+            yaxis=dict(rangemode="tozero"),  # Ensure y-axis starts at 0
             height=400,
         )
 

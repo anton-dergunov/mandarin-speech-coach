@@ -29,6 +29,7 @@ class RecognitionResult:
 class PitchTrack:
     times: np.ndarray
     frequencies: np.ndarray
+    duration: float
     metadata: dict = field(default_factory=dict)
 
 

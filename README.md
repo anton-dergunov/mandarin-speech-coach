@@ -121,7 +121,7 @@ brew install ffmpeg libsndfile
 **Run:**
 
 ```bash
-python app/gradio_demo/app.py
+python apps/gradio_demo/app.py
 ```
 
 Open the URL printed in the terminal (default `http://127.0.0.1:7860`).
@@ -139,14 +139,14 @@ source .venv/bin/activate
 uv pip install -e .
 
 # Or run without activating the venv
-uv run python app/gradio_demo/app.py
+uv run python apps/gradio_demo/app.py
 ```
 
 **Reproducible installs** (uses `uv.lock`):
 
 ```bash
 uv sync
-uv run python app/gradio_demo/app.py
+uv run python apps/gradio_demo/app.py
 ```
 
 ---
@@ -203,7 +203,7 @@ Run the app with `mfa` on your `PATH` in the **same terminal** as the Python app
 ```bash
 conda activate aligner          # or your MFA env name
 source .venv/bin/activate       # project venv
-python app/gradio_demo/app.py
+python apps/gradio_demo/app.py
 ```
 
 Quick sanity check (uses a tiny temp recording; should print MFA version info, not fail immediately):
@@ -272,7 +272,7 @@ Then open `http://127.0.0.1:7860`.
 | `GRADIO_SERVER_NAME` | `0.0.0.0` | Listen on all interfaces |
 | `GRADIO_SERVER_PORT` | `7860` | HTTP port |
 | `GRADIO_DEBUG` | `0` | Set to `1` for Gradio debug mode |
-| `HF_HOME` | `/app/.cache/huggingface` | Model cache directory |
+| `HF_HOME` | `/apps/.cache/huggingface` | Model cache directory |
 
 ---
 
