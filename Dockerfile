@@ -10,7 +10,9 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY pyproject.toml mandarin_speech_demo.py ./
+COPY pyproject.toml ./
+COPY src/ ./src/
+COPY apps/ ./apps/
 
 RUN micromamba install -y -n base -c conda-forge \
       python=3.12 \
@@ -32,9 +34,10 @@ Wav2Vec2ForCTC.from_pretrained('jonatasgrosman/wav2vec2-large-xlsr-53-chinese-zh
 ENV GRADIO_SERVER_NAME=0.0.0.0 \
     GRADIO_SERVER_PORT=7860 \
     HF_HOME=/app/.cache/huggingface \
-    TRANSFORMERS_CACHE=/app/.cache/huggingface
+    TRANSFORMERS_CACHE=/app/.cache/huggingface \
+    PYTHONPATH="/app/src:/app"
 
 EXPOSE 7860
 
 USER ${MAMBA_USER}
-CMD ["python", "mandarin_speech_demo.py"]
+CMD ["python", "apps/gradio_demo/app.py"]

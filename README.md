@@ -121,6 +121,7 @@ brew install ffmpeg libsndfile
 **Run:**
 
 ```bash
+export PYTHONPATH=$PYTHONPATH:.
 python apps/gradio_demo/app.py
 ```
 
@@ -139,14 +140,14 @@ source .venv/bin/activate
 uv pip install -e .
 
 # Or run without activating the venv
-uv run python apps/gradio_demo/app.py
+PYTHONPATH=. uv run python apps/gradio_demo/app.py
 ```
 
 **Reproducible installs** (uses `uv.lock`):
 
 ```bash
 uv sync
-uv run python apps/gradio_demo/app.py
+PYTHONPATH=. uv run python apps/gradio_demo/app.py
 ```
 
 ---
@@ -203,6 +204,7 @@ Run the app with `mfa` on your `PATH` in the **same terminal** as the Python app
 ```bash
 conda activate aligner          # or your MFA env name
 source .venv/bin/activate       # project venv
+export PYTHONPATH=$PYTHONPATH:.
 python apps/gradio_demo/app.py
 ```
 
@@ -284,7 +286,7 @@ Then open `http://127.0.0.1:7860`.
 | **`uv sync` + committed `uv.lock`** | Fast, reproducible local/CI installs |
 | **CTC only** | Skip MFA entirely; smallest local install |
 | **Pre-download models** | Run once: `python -c "from transformers import ..."` (see `Dockerfile`) to avoid first-run delay |
-| **Make / script wrapper** | Optional `make run` → `uv run python mandarin_speech_demo.py` for one command |
+| **Make / script wrapper** | Optional `make run` → `uv run python apps/gradio_demo/app.py` for one command |
 | **Dev Container** | Optional `.devcontainer/` for VS Code / Cursor with extensions and `postCreateCommand: uv sync` |
 
 ---

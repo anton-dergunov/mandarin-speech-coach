@@ -43,4 +43,5 @@ mfa = [
 ]
 
 [tool.setuptools]
-py-modules = ["mandarin_speech_demo"]
+package-dir = { "" = "src" }
+packages = ["mandarin_speech_coach"]
