@@ -48,12 +48,14 @@ class CTCAligner(BaseAligner):
             dim=-1
         )[0].cpu()
 
-        # TODO Attempting to smooth out
-        log_priors = torch.log(torch.bincount(labels, minlength=emissions.size(1)).float() + 1e-8)
+        # 3. Log-prior smoothing to improve alignment robustness
+        log_priors = torch.log(
+            torch.bincount(labels, minlength=emissions.size(1)).float() + 1e-8
+        )
         alpha = 0.5
         emissions = emissions - alpha * log_priors.unsqueeze(0)
 
-        # 3. Generate Trellis (dynamic programming table)
+        # 4. Generate Trellis (dynamic programming table)
         blank_id = self.processor.tokenizer.pad_token_id
 
         # Insert blank tokens between characters for CTC
@@ -98,7 +100,7 @@ class CTCAligner(BaseAligner):
                     + emissions[t, token_path[j]]
                 )
 
-        # 4. Backtrack to find the most likely path
+        # 5. Backtrack to find the most likely path
         path = []
         j = trellis.shape[1] - 1
 
@@ -123,7 +125,7 @@ class CTCAligner(BaseAligner):
 
         path.reverse()
 
-        # 5. Merge and Format Segments
+        # 6. Merge and Format Segments
         segments = []
 
         for token, time_idx, score in path:

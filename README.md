@@ -15,9 +15,35 @@ Default target phrase: **我喜欢机器学习** (`wǒ xǐhuān jīqì xuéxí`)
 1. **Record / upload** audio in the browser.
 2. **Trim silence**, then **Whisper** transcribes what you said (for comparison).
 3. **Forced alignment** maps each character of the target text to a time range:
-   - **CTC (default)** — Wav2Vec2 Chinese model, pure Python/PyTorch.
+   - **CTC (default)** — Wav2Vec2 Chinese model with log-prior smoothing.
    - **MFA (optional)** — Montreal Forced Aligner via the `mfa` CLI.
 4. **Parselmouth (Praat)** extracts pitch; **Plotly** draws F0 with tone-colored bands.
+
+---
+
+## Project Structure
+
+```text
+.
+├── apps/
+│   └── gradio_demo/          # Gradio Web Application
+│       ├── app.py            # Main entry point
+│
+├── src/
+│   └── mandarin_speech_coach/ # Core logic package
+│       ├── alignment/         # Forced alignment (CTC, MFA)
+│       ├── asr/               # Speech recognition (Whisper)
+│       ├── audio/             # Preprocessing (trimming, etc.)
+│       ├── core/              # Type definitions and main pipeline
+│       ├── models/            # Model registry and lazy loading
+│       ├── pitch/             # Pitch extraction (Parselmouth/Praat)
+│       ├── tones/             # Pinyin and tone utilities
+│       └── visualization/     # Plotly figure builders
+│
+├── samples/                  # Example audio files for testing
+├── Dockerfile                # Full image with MFA + models
+└── README.md
+```
 
 ---
 
@@ -95,7 +121,7 @@ brew install ffmpeg libsndfile
 **Run:**
 
 ```bash
-python mandarin_speech_demo.py
+python app/gradio_demo/app.py
 ```
 
 Open the URL printed in the terminal (default `http://127.0.0.1:7860`).
@@ -113,14 +139,14 @@ source .venv/bin/activate
 uv pip install -e .
 
 # Or run without activating the venv
-uv run python mandarin_speech_demo.py
+uv run python app/gradio_demo/app.py
 ```
 
 **Reproducible installs** (uses `uv.lock`):
 
 ```bash
 uv sync
-uv run python mandarin_speech_demo.py
+uv run python app/gradio_demo/app.py
 ```
 
 ---
@@ -177,7 +203,7 @@ Run the app with `mfa` on your `PATH` in the **same terminal** as the Python app
 ```bash
 conda activate aligner          # or your MFA env name
 source .venv/bin/activate       # project venv
-python mandarin_speech_demo.py
+python app/gradio_demo/app.py
 ```
 
 Quick sanity check (uses a tiny temp recording; should print MFA version info, not fail immediately):
@@ -260,20 +286,6 @@ Then open `http://127.0.0.1:7860`.
 | **Pre-download models** | Run once: `python -c "from transformers import ..."` (see `Dockerfile`) to avoid first-run delay |
 | **Make / script wrapper** | Optional `make run` → `uv run python mandarin_speech_demo.py` for one command |
 | **Dev Container** | Optional `.devcontainer/` for VS Code / Cursor with extensions and `postCreateCommand: uv sync` |
-
----
-
-## Project layout
-
-```text
-.
-├── mandarin_speech_demo.py   # Main Gradio app
-├── pyproject.toml            # Dependencies and package metadata
-├── uv.lock                   # Pinned versions (commit this)
-├── Dockerfile                # Full image with MFA + models
-├── docker-compose.yml
-└── README.md
-```
 
 ---
 
