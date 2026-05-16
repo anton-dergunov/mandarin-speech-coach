@@ -121,7 +121,7 @@ brew install ffmpeg libsndfile
 **Run:**
 
 ```bash
-export PYTHONPATH=$PYTHONPATH:.
+export PYTHONPATH=src:.
 python apps/gradio_demo/app.py
 ```
 
@@ -140,14 +140,14 @@ source .venv/bin/activate
 uv pip install -e .
 
 # Or run without activating the venv
-PYTHONPATH=. uv run python apps/gradio_demo/app.py
+PYTHONPATH=src:. uv run python apps/gradio_demo/app.py
 ```
 
 **Reproducible installs** (uses `uv.lock`):
 
 ```bash
 uv sync
-PYTHONPATH=. uv run python apps/gradio_demo/app.py
+PYTHONPATH=src:. uv run python apps/gradio_demo/app.py
 ```
 
 ---
@@ -204,7 +204,7 @@ Run the app with `mfa` on your `PATH` in the **same terminal** as the Python app
 ```bash
 conda activate aligner          # or your MFA env name
 source .venv/bin/activate       # project venv
-export PYTHONPATH=$PYTHONPATH:.
+export PYTHONPATH=src:.
 python apps/gradio_demo/app.py
 ```
 
