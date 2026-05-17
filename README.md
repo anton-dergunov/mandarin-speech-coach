@@ -1,6 +1,6 @@
 # Mandarin Speech Coach (Prototype)
 
-[![Tests](https://github.com/anton-dergunov/mandarin-speech-coach/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/anton-dergunov/mandarin-speech-coach/actions/workflows/unit-tests.yaml)
+[![Tests](https://github.com/anton-dergunov/mandarin-speech-coach/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/anton-dergunov/mandarin-speech-coach/actions/workflows/unit-tests.yml)
 
 ![Demo](assets/demo.png)
 
