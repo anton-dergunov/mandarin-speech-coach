@@ -1,5 +1,7 @@
 # Mandarin Speech Coach (Prototype)
 
+[![Tests](https://github.com/anton-dergunov/mandarin-speech-coach/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/anton-dergunov/mandarin-speech-coach/actions/workflows/unit-tests.yaml)
+
 ![Demo](assets/demo.png)
 
 A web app for **Mandarin pronunciation practice**. Record or upload your voice, compare it to a target phrase, and see **pitch (F0)**, **character-level alignment**, and **tone-colored** segments.
