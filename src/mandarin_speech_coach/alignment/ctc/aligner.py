@@ -121,20 +121,26 @@ class CTCAligner(BaseAligner):
             ):
                 j = j - 1
 
-            path.append((token_path[j], t, emissions[t, token_path[j]].exp().item()))
+            path.append((token_path[j], t, torch.exp(emissions[t, token_path[j]]).item()))
 
         path.reverse()
 
         # 6. Merge and Format Segments
         segments = []
+        prev_token = None
 
         for token, time_idx, score in path:
             if token != blank_id:
                 char = self.processor.decode(token)
 
+                # Start a new segment if:
+                # - this is the first token
+                # - character changed
+                # - previous path token was blank
                 if (
                     not segments
                     or segments[-1]["char"] != char
+                    or prev_token == blank_id
                 ):
                     segments.append(
                         {
@@ -147,6 +153,8 @@ class CTCAligner(BaseAligner):
                 else:
                     segments[-1]["end_frame"] = time_idx
                     segments[-1]["scores"].append(score)
+
+            prev_token = token
 
         # Convert frame indices to seconds
         ratio = waveform.shape[1] / emissions.shape[0] / 16000

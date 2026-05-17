@@ -41,6 +41,9 @@ mfa = [
   "dragonmapper>=0.2.6",
   "hanziconv>=0.3.2",
 ]
+test = [
+  "pytest>=8.0"
+]
 
 [tool.setuptools]
 package-dir = { "" = "src" }

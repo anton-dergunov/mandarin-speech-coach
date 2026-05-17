@@ -291,6 +291,23 @@ Then open `http://127.0.0.1:7860`.
 
 ---
 
+## Testing
+
+Ensure you have installed the test dependencies:
+
+```bash
+pip install .[test]
+```
+
+Then run the tests using `pytest`:
+
+```bash
+export PYTHONPATH=src
+pytest tests/unit
+```
+
+---
+
 ## License
 
 MIT (see `pyproject.toml`). Hugging Face and MFA models have their own licenses; check their model cards before redistribution.

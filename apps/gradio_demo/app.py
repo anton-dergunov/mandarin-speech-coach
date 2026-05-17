@@ -124,21 +124,22 @@ with gr.Blocks(
         ],
     )
 
-demo.launch(
-    debug=os.environ.get(
-        "GRADIO_DEBUG",
-        "0",
-    ) == "1",
+if __name__ == "__main__":
+    demo.launch(
+        debug=os.environ.get(
+            "GRADIO_DEBUG",
+            "0",
+        ) == "1",
 
-    server_name=os.environ.get(
-        "GRADIO_SERVER_NAME",
-        "127.0.0.1",
-    ),
+        server_name=os.environ.get(
+            "GRADIO_SERVER_NAME",
+            "127.0.0.1",
+        ),
 
-    server_port=int(
-        os.environ.get(
-            "GRADIO_SERVER_PORT",
-            "7860",
-        )
-    ),
-)
+        server_port=int(
+            os.environ.get(
+                "GRADIO_SERVER_PORT",
+                "7860",
+            )
+        ),
+    )
