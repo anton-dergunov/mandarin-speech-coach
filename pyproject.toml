@@ -45,6 +45,11 @@ test = [
   "pytest>=8.0"
 ]
 
+[tool.pytest.ini_options]
+markers = [
+  "integration: end-to-end tests with real models (not run in CI)",
+]
+
 [tool.setuptools]
 package-dir = { "" = "src" }
 packages = ["mandarin_speech_coach"]

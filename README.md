@@ -308,6 +308,13 @@ export PYTHONPATH=src
 pytest tests/unit
 ```
 
+**Integration tests** (`tests/integration`) run the real Whisper, alignment, and pitch stack on `samples/example.wav`. For MFA, activate your conda env in the same shell (`conda activate aligner`) so `mfa` is on `PATH`.
+
+```bash
+export PYTHONPATH=src
+pytest tests/integration
+```
+
 ---
 
 ## License
